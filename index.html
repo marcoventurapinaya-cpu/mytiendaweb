@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tienda Virtual - Mi Negocio</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f7f9fc;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    header {
+      background-color: #1a73e8;
+      color: white;
+      text-align: center;
+      padding: 20px 0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    h1 {
+      margin: 0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+    .categories {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    .category-btn {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+    .category-btn:hover {
+      background-color: #45a049;
+    }
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .product {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 15px;
+      transition: transform 0.3s;
+    }
+    .product:hover {
+      transform: translateY(-5px);
+    }
+    .product h3 {
+      margin: 0 0 10px;
+      color: #1a73e8;
+    }
+    .product p {
+      margin: 5px 0;
+      font-size: 14px;
+      color: #555;
+    }
+    .price {
+      font-weight: bold;
+      color: #2e7d32;
+    }
+    .btn-add {
+      margin-top: 10px;
+      padding: 8px 15px;
+      background-color: #1a73e8;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+    }
+    .btn-add:hover {
+      background-color: #1557b0;
+    }
+    .cart {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      padding: 15px;
+      width: 300px;
+      max-height: 80vh;
+      overflow-y: auto;
+      display: none;
+    }
+    .cart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 5px;
+    }
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+      font-size: 14px;
+    }
+    .cart-total {
+      margin-top: 15px;
+      font-weight: bold;
+      text-align: right;
+      color: #1a73e8;
+    }
+    .close-cart {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .show-cart {
+      display: block !important;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🏪 Mi Tienda Virtual</h1>
+    <p>Vende con control y transparencia</p>
+  </header>
+
+  <div class="container">
+    <!-- Categorías -->
+    <div class="categories">
+      <button class="category-btn" onclick="filterCategory('all')">Todos</button>
+      <button class="category-btn" onclick="filterCategory('gaseosas')">Gaseosas</button>
+      <button class="category-btn" onclick="filterCategory('comestibles')">Comestibles</button>
+      <button class="category-btn" onclick="filterCategory('snacks')">Snacks</button>
+      <button class="category-btn" onclick="filterCategory('otros')">Otros</button>
+    </div>
+
+    <!-- Productos -->
+    <div class="products" id="product-list">
+      <!-- Producto 1 -->
+      <div class="product" data-category="gaseosas">
+        <h3>Coca-Cola 3L</h3>
+        <p><strong>Precio Compra:</strong> $1.80</p>
+        <p><strong>Precio Venta (Unidad):</strong> <span class="price">$2.50</span></p>
+        <p><strong>Precio Venta (Paquete 6 und):</strong> $14.00</p>
+        <p><strong>Ganancia por Unidad:</strong> $0.70</p>
+        <button class="btn-add" onclick="addToCart('Coca-Cola 3L', 2.50)">Añadir a compra (Unidad)</button>
+        <button class="btn-add" onclick="addToCart('Coca-Cola 3L (Paquete 6)', 14.00)">Añadir paquete (6 und)</button>
+      </div>
+
+      <!-- Producto 2 -->
+      <div class="product" data-category="gaseosas">
+        <h3>Pepsi 2.5L</h3>
+        <p><strong>Precio Compra:</strong> $1.60</p>
+        <p><strong>Precio Venta (Unidad):</strong> <span class="price">$2.30</span></p>
+        <p><strong>Precio Venta (Paquete 6 und):</strong> $13.00</p>
+        <p><strong>Ganancia por Unidad:</strong> $0.70</p>
+        <button class="btn-add" onclick="addToCart('Pepsi 2.5L', 2.30)">Añadir a compra (Unidad)</button>
+        <button class="btn-add" onclick="addToCart('Pepsi 2.5L (Paquete 6)', 13.00)">Añadir paquete (6 und)</button>
+      </div>
+
+      <!-- Producto 3 -->
+      <div class="product" data-category="comestibles">
+        <h3>Arroz Costeño 1kg</h3>
+        <p><strong>Precio Compra:</strong> $1.00</p>
+        <p><strong>Precio Venta (Unidad):</strong> <span class="price">$1.40</span></p>
+        <p><strong>Precio Venta (Paquete 10 und):</strong> $13.00</p>
+        <p><strong>Ganancia por Unidad:</strong> $0.40</p>
+        <button class="btn-add" onclick="addToCart('Arroz Costeño 1kg', 1.40)">Añadir a compra</button>
+        <button class="btn-add" onclick="addToCart('Arroz Costeño 1kg (Paquete 10)', 13.00)">Añadir paquete (10 und)</button>
+      </div>
+
+      <!-- Producto 4 -->
+      <div class="product" data-category="snacks">
+        <h3>Chips Frito Lay (50g)</h3>
+        <p><strong>Precio Compra:</strong> $0.60</p>
+        <p><strong>Precio Venta (Unidad):</strong> <span class="price">$1.00</span></p>
+        <p><strong>Precio Venta (Paquete 12 und):</strong> $11.00</p>
+        <p><strong>Ganancia por Unidad:</strong> $0.40</p>
+        <button class="btn-add" onclick="addToCart('Chips Frito Lay', 1.00)">Añadir a compra</button>
+        <button class="btn-add" onclick="addToCart('Chips Frito Lay (Paquete 12)', 11.00)">Añadir paquete (12 und)</button>
+      </div>
+
+      <!-- Producto 5 -->
+      <div class="product" data-category="otros">
+        <h3>Agua Vital 1L</h3>
+        <p><strong>Precio Compra:</strong> $0.80</p>
+        <p><strong>Precio Venta (Unidad):</strong> <span class="price">$1.20</span></p>
+        <p><strong>Precio Venta (Paquete 12 und):</strong> $13.50</p>
+        <p><strong>Ganancia por Unidad:</strong> $0.40</p>
+        <button class="btn-add" onclick="addToCart('Agua Vital 1L', 1.20)">Añadir a compra</button>
+        <button class="btn-add" onclick="addToCart('Agua Vital 1L (Paquete 12)', 13.50)">Añadir paquete (12 und)</button>
+      </div>
+
+      <!-- Producto 6 -->
+      <div class="product" data-category="gaseosas">
+        <h3>Sprite 2L</h3>
+        <p><strong>Precio Compra:</strong> $1.70</p>
+        <p><strong>Precio Venta (Unidad):</strong> <span class="price">$2.40</span></p>
+        <p><strong>Precio Venta (Paquete 6 und):</strong> $13.80</p>
+        <p><strong>Ganancia por Unidad:</strong> $0.70</p>
+        <button class="btn-add" onclick="addToCart('Sprite 2L', 2.40)">Añadir a compra (Unidad)</button>
+        <button class="btn-add" onclick="addToCart('Sprite 2L (Paquete 6)', 13.80)">Añadir paquete (6 und)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Carrito de compras -->
+  <div class="cart" id="cart">
+    <div class="cart-header">
+      <h3>Tu Compra</h3>
+      <button class="close-cart" onclick="toggleCart()">✕</button>
+    </div>
+    <div id="cart-items">
+      <!-- Aquí se agregan los productos -->
+      <p id="empty-cart">Tu carrito está vacío.</p>
+    </div>
+    <div class="cart-total" id="cart-total">
+      Total: $0.00
+    </div>
+  </div>
+
+  <button style="position: fixed; bottom: 20px; right: 20px; background: #1a73e8; color: white; border: none; padding: 12px 20px; border-radius: 50%; font-size: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer;" onclick="toggleCart()">
+    🛒 <span id="cart-count">0</span>
+  </button>
+
+  <script>
+    // Carrito
+    let cart = [];
+    const cartItemsEl = document.getElementById('cart-items');
+    const cartTotalEl = document.getElementById('cart-total');
+    const cartCountEl = document.getElementById('cart-count');
+    const emptyCartMsg = document.getElementById('empty-cart');
+
+    function addToCart(name, price) {
+      const existing = cart.find(item => item.name === name);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({ name, price, quantity: 1 });
+      }
+      updateCart();
+    }
+
+    function updateCart() {
+      cartItemsEl.innerHTML = '';
+      let total = 0;
+      let count = 0;
+
+      if (cart.length === 0) {
+        cartItemsEl.appendChild(emptyCartMsg);
+      } else {
+        cart.forEach(item => {
+          const itemTotal = item.price * item.quantity;
+          total += itemTotal;
+          count += item.quantity;
+
+          const div = document.createElement('div');
+          div.className = 'cart-item';
+          div.innerHTML = `
+            <span>${item.name} x${item.quantity}</span>
+            <span>$${itemTotal.toFixed(2)}</span>
+          `;
+          cartItemsEl.appendChild(div);
+        });
+      }
+
+      cartTotalEl.textContent = `Total: $${total.toFixed(2)}`;
+      cartCountEl.textContent = count;
+    }
+
+    function toggleCart() {
+      const cartEl = document.getElementById('cart');
+      cartEl.classList.toggle('show-cart');
+    }
+
+    // Filtro de categorías
+    function filterCategory(category) {
+      const products = document.querySelectorAll('.product');
+      products.forEach(product => {
+        if (category === 'all' || product.getAttribute('data-category') === category) {
+          product.classList.remove('hidden');
+        } else {
+          product.classList.add('hidden');
+        }
+      });
+    }
+
+    // Cerrar carrito al hacer clic fuera
+    window.onclick = function(e) {
+      const cart = document.getElementById('cart');
+      if (!cart.contains(e.target) && !e.target.closest('button') && cart.classList.contains('show-cart')) {
+        cart.classList.remove('show-cart');
+      }
+    };
+  </script>
+
+</body>
+</html>
