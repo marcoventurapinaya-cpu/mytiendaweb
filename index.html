@@ -6,6 +6,9 @@
   <title>Tienda Virtual - Mi Negocio</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -279,6 +282,16 @@
 
     .show-cart { display: block; }
     .hidden { display: none; }
+
+    .sync-status {
+      text-align: center;
+      padding: 8px;
+      background: #e8f5e9;
+      color: #2e7d32;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -289,6 +302,7 @@
   </header>
 
   <div class="container">
+    <div class="sync-status" id="sync-status">🔄 Conectando con Firebase...</div>
 
     <!-- Búsqueda -->
     <div class="search-box">
@@ -305,17 +319,15 @@
         <input type="text" id="prod-name" placeholder="Nombre del producto">
         <input type="number" id="prod-price" placeholder="Precio por unidad (Bs.)" step="0.01">
         <input type="number" id="prod-bulk-price" placeholder="Precio por mayor (Bs.)" step="0.01">
-        <input type="text" id="prod-bulk-desc" placeholder="Descripción del paquete (ej: Paquete 6 und)">
-        <select id="prod-category">
-          <!-- Las categorías se cargarán dinámicamente -->
-        </select>
+        <input type="text" id="prod-bulk-desc" placeholder="Descripción del paquete">
+        <select id="prod-category"></select>
         <button onclick="addProduct()">Agregar Producto</button>
       </div>
 
       <!-- Añadir nueva categoría -->
-      <div class="add-form" style="margin-top: 15px;">
-        <h4>➕ Añadir Nueva Categoría</h4>
-        <input type="text" id="new-category" placeholder="Nombre de la nueva categoría (ej: Dulces)">
+      <div class="add-form">
+        <h4>➕ Añadir Categoría</h4>
+        <input type="text" id="new-category" placeholder="Nombre de la nueva categoría">
         <button onclick="addNewCategory()">Agregar Categoría</button>
       </div>
 
@@ -328,18 +340,13 @@
     </div>
 
     <!-- Categorías -->
-    <div class="categories" id="categories-container">
-      <!-- Se llenará dinámicamente -->
-    </div>
+    <div class="categories" id="categories-container"></div>
 
     <!-- Productos -->
-    <div class="products" id="product-list">
-      <!-- Se llenará dinámicamente -->
-    </div>
-
+    <div class="products" id="product-list"></div>
   </div>
 
-  <!-- Botón flotante del carrito -->
+  <!-- Botón del carrito -->
   <button style="position: fixed; bottom: 20px; right: 20px; background: #1a73e8; color: white; border: none; padding: 15px; border-radius: 50%; font-size: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; z-index: 10;" onclick="toggleCart()">
     🛒 <span id="cart-count">0</span>
   </button>
@@ -377,80 +384,92 @@
   </div>
 
   <script>
-    // Claves de almacenamiento
-    const STORAGE_PRODUCTS = 'mi_tienda_productos_vfinal';
-    const STORAGE_CATEGORIES = 'mi_tienda_categorias_v1';
+    // === CONFIGURACIÓN DE FIREBASE ===
+    // 🔥 Reemplaza con tus datos de Firebase Console
+    const firebaseConfig = {
+      apiKey: "TU_API_KEY",
+      authDomain: "mi-tienda-virtual.firebaseapp.com",
+      databaseURL: "https://mi-tienda-virtual-default-rtdb.firebaseio.com",
+      projectId: "mi-tienda-virtual",
+      storageBucket: "mi-tienda-virtual.appspot.com",
+      messagingSenderId: "123456789",
+      appId: "1:123456789:web:abc123"
+    };
 
-    // Cargar productos
-    let products = JSON.parse(localStorage.getItem(STORAGE_PRODUCTS)) || [
-      { name: "Coca-Cola 3L", price: 18.00, bulkPrice: 105.00, bulkDesc: "Paquete 6 und", category: "gaseosas" },
-      { name: "Papel Higiénico 4 rollos", price: 12.00, bulkPrice: 135.00, bulkDesc: "Paquete 12 und", category: "papel higienico" },
-      { name: "Agua Vital 1L", price: 8.50, bulkPrice: 96.00, bulkDesc: "Paquete 12 und", category: "aguas" }
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // === VARIABLES GLOBALES ===
+    let products = [];
+    let categories = [
+      "gaseosas", "jugos", "aguas", "cerveza", "tragos", 
+      "panales", "plasticos", "limpieza", "galletas", "papel higienico"
     ];
-
-    // Cargar categorías (incluyendo "papel higienico")
-    let categories = JSON.parse(localStorage.getItem(STORAGE_CATEGORIES)) || [
-      "gaseosas",
-      "jugos",
-      "aguas",
-      "cerveza",
-      "tragos",
-      "panales",
-      "plasticos",
-      "limpieza",
-      "galletas",
-      "papel higienico"  // ← Nueva categoría
-    ];
-
     let cart = [];
 
-    // Guardar productos y categorías
-    function saveProducts() {
-      localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products));
-    }
-    function saveCategories() {
-      localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(categories));
+    // === CARGAR DATOS DESDE FIREBASE ===
+    function loadFromFirebase() {
+      document.getElementById('sync-status').textContent = '🔄 Cargando datos...';
+
+      database.ref('products').once('value')
+        .then(snapshot => {
+          const data = snapshot.val();
+          products = data ? Object.values(data) : [
+            { name: "Coca-Cola 3L", price: 18.00, bulkPrice: 105.00, bulkDesc: "Paquete 6 und", category: "gaseosas" },
+            { name: "Papel Higiénico 4R", price: 12.00, bulkPrice: 135.00, bulkDesc: "Paquete 12 und", category: "papel higienico" }
+          ];
+          loadCategories();
+          loadProducts();
+          document.getElementById('sync-status').textContent = '✅ Datos sincronizados';
+        })
+        .catch(err => {
+          console.error("Error al cargar:", err);
+          document.getElementById('sync-status').textContent = '❌ Error de conexión';
+        });
     }
 
-    // Cargar categorías en menús
+    // === GUARDAR EN FIREBASE ===
+    function saveProducts() {
+      const productsObj = {};
+      products.forEach((p, i) => productsObj[i] = p);
+      database.ref('products').set(products);
+    }
+
+    function saveCategories() {
+      database.ref('categories').set(categories);
+    }
+
+    // === CARGAR CATEGORÍAS ===
     function loadCategories() {
       const container = document.getElementById('categories-container');
       const select = document.getElementById('prod-category');
-      
-      // Limpiar
       container.innerHTML = '';
       select.innerHTML = '<option value="">Seleccionar categoría</option>';
 
-      // Agregar "Todos"
+      // Botón "Todos"
       const btnAll = document.createElement('button');
       btnAll.className = 'category-btn';
       btnAll.textContent = 'Todos';
       btnAll.onclick = () => filterCategory('all');
       container.appendChild(btnAll);
 
-      // Agregar cada categoría
       categories.forEach(cat => {
-        const safeCat = cat.toLowerCase().replace(/\s+/g, ''); // "papel higienico" → "papelhigienico"
-        
+        const safeCat = cat.toLowerCase().replace(/\s+/g, '');
         const btn = document.createElement('button');
         btn.className = 'category-btn';
-        btn.textContent = capitalize(cat);
+        btn.textContent = cat.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
         btn.onclick = () => filterCategory(safeCat);
         container.appendChild(btn);
 
         const option = document.createElement('option');
         option.value = safeCat;
-        option.textContent = capitalize(cat);
+        option.textContent = btn.textContent;
         select.appendChild(option);
       });
     }
 
-    // Capitalizar texto
-    function capitalize(str) {
-      return str.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-    }
-
-    // Cargar productos
+    // === CARGAR PRODUCTOS ===
     function loadProducts() {
       const container = document.getElementById('product-list');
       container.innerHTML = '';
@@ -471,7 +490,7 @@
       });
     }
 
-    // Añadir producto
+    // === FUNCIONES ===
     function addProduct() {
       const name = document.getElementById('prod-name').value.trim();
       const price = parseFloat(document.getElementById('prod-price').value);
@@ -484,19 +503,11 @@
         return;
       }
 
-      // Buscar categoría original para mostrar bien
       const displayCategory = categories.find(c => c.toLowerCase().replace(/\s+/g, '') === category) || "otros";
-
-      products.push({ 
-        name, 
-        price, 
-        bulkPrice, 
-        bulkDesc, 
-        category: displayCategory 
-      });
+      products.push({ name, price, bulkPrice, bulkDesc, category: displayCategory });
       saveProducts();
       loadProducts();
-      alert("✅ Producto agregado.");
+      alert("✅ Producto agregado y sincronizado.");
       clearForm();
     }
 
@@ -508,30 +519,20 @@
       document.getElementById('prod-category').value = '';
     }
 
-    // Añadir nueva categoría
     function addNewCategory() {
-      const input = document.getElementById('new-category');
-      const name = input.value.trim();
-      if (!name) {
-        alert("Escribe un nombre de categoría.");
-        return;
-      }
-
+      const name = document.getElementById('new-category').value.trim();
+      if (!name) return alert("Escribe un nombre.");
       const safeName = name.toLowerCase().replace(/\s+/g, '');
-      const exists = categories.some(cat => cat.toLowerCase().replace(/\s+/g, '') === safeName);
-      if (exists) {
-        alert("Esta categoría ya existe.");
-        return;
+      if (categories.some(c => c.toLowerCase().replace(/\s+/g, '') === safeName)) {
+        return alert("Ya existe.");
       }
-
       categories.push(name);
       saveCategories();
       loadCategories();
-      input.value = '';
+      document.getElementById('new-category').value = '';
       alert(`✅ Categoría "${name}" agregada.`);
     }
 
-    // Manejar carga de Excel
     function handleFile(fileList) {
       if (!fileList.length) return;
       const file = fileList[0];
@@ -546,13 +547,10 @@
           let added = 0;
           json.forEach(row => {
             if (!row.nombre || !row.precio || !row.precio_mayor || !row.descripcion_mayor || !row.categoria) return;
-            
-            // Añadir categoría si no existe
             const catNorm = row.categoria.toLowerCase().replace(/\s+/g, '');
             if (!categories.some(c => c.toLowerCase().replace(/\s+/g, '') === catNorm)) {
               categories.push(row.categoria);
             }
-
             products.push({
               name: row.nombre,
               price: parseFloat(row.precio),
@@ -566,20 +564,18 @@
           saveProducts();
           loadCategories();
           loadProducts();
-          alert(`✅ ${added} productos cargados desde Excel.`);
-        } catch (error) {
-          alert("❌ Error al leer el archivo.");
+          alert(`✅ ${added} productos cargados.`);
+        } catch (e) {
+          alert("❌ Error al leer Excel.");
         }
       };
       reader.readAsArrayBuffer(file);
     }
 
-    // Descargar plantilla
     function downloadTemplate() {
       const data = [
         ["nombre", "precio", "precio_mayor", "descripcion_mayor", "categoria"],
-        ["Papel Higiénico 4R", 12.00, 135.00, "Paquete 12 und", "papel higienico"],
-        ["Coca-Cola 3L", 18.00, 105.00, "Paquete 6 und", "gaseosas"]
+        ["Papel Higiénico 4R", 12.00, 135.00, "Paquete 12 und", "papel higienico"]
       ];
       const ws = XLSX.utils.aoa_to_sheet(data);
       const wb = XLSX.utils.book_new();
@@ -587,28 +583,22 @@
       XLSX.writeFile(wb, "plantilla_productos_tienda.xlsx");
     }
 
-    // Búsqueda
     function searchProduct() {
       const term = document.getElementById('search-input').value.toLowerCase();
-      const productsList = document.querySelectorAll('.product');
-      productsList.forEach(p => {
+      document.querySelectorAll('.product').forEach(p => {
         const name = p.getAttribute('data-name');
-        const category = p.getAttribute('data-category');
-        const matches = name.includes(term) || category.includes(term);
-        p.style.display = matches ? 'block' : 'none';
+        const cat = p.getAttribute('data-category');
+        p.style.display = (name.includes(term) || cat.includes(term)) ? 'block' : 'none';
       });
     }
 
-    // Filtrar por categoría
     function filterCategory(category) {
       document.getElementById('search-input').value = '';
-      const productsList = document.querySelectorAll('.product');
-      productsList.forEach(p => {
+      document.querySelectorAll('.product').forEach(p => {
         p.style.display = (category === 'all' || p.getAttribute('data-category') === category) ? 'block' : 'none';
       });
     }
 
-    // Carrito
     function addToCart(name, price) {
       const item = cart.find(i => i.name === name);
       if (item) item.quantity += 1;
@@ -644,14 +634,9 @@
       document.getElementById('cart').classList.toggle('show-cart');
     }
 
-    // Finalizar compra
     function checkout() {
-      if (cart.length === 0) {
-        alert("Vacío");
-        return;
-      }
+      if (cart.length === 0) return alert("Vacío");
       const receiptItems = document.getElementById('receipt-items');
-      const receiptTotal = document.getElementById('receipt-total');
       receiptItems.innerHTML = '';
       let total = 0;
       cart.forEach(item => {
@@ -662,7 +647,7 @@
         p.innerHTML = `<span>${item.name}</span><span>${t.toFixed(2)} Bs.</span>`;
         receiptItems.appendChild(p);
       });
-      receiptTotal.textContent = `Total: ${total.toFixed(2)} Bs.`;
+      document.getElementById('receipt-total').textContent = `Total: ${total.toFixed(2)} Bs.`;
       document.getElementById('receipt-date').textContent = new Date().toLocaleString('es-BO');
       document.getElementById('receipt-modal').style.display = 'flex';
       toggleCart();
@@ -681,12 +666,11 @@
       document.body.innerHTML = d;
     }
 
-    // Inicializar
+    // === INICIALIZAR ===
     window.onload = function() {
-      loadCategories();
-      loadProducts();
+      loadFromFirebase();
       updateCart();
     };
   </script>
 </body>
-</html>    
+</html>
