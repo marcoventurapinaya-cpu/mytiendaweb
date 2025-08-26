@@ -4,314 +4,689 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Tienda Virtual - Mi Negocio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f7f9fc;
+      font-family: 'Poppins', sans-serif;
+      background: #f5f7fa;
       margin: 0;
       padding: 0;
       color: #333;
     }
     header {
-      background-color: #1a73e8;
+      background: linear-gradient(90deg, #1a73e8, #0d47a1);
       color: white;
       text-align: center;
-      padding: 20px 0;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 30px 0;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
     h1 {
       margin: 0;
+      font-weight: 600;
     }
     .container {
       max-width: 1200px;
       margin: 20px auto;
       padding: 0 20px;
     }
+
+    .search-box {
+      margin: 15px 0;
+      text-align: center;
+    }
+    .search-box input {
+      width: 80%;
+      max-width: 500px;
+      padding: 12px 16px;
+      border: 2px solid #1a73e8;
+      border-radius: 30px;
+      font-size: 16px;
+      outline: none;
+    }
+
     .categories {
       display: flex;
       justify-content: center;
-      gap: 15px;
-      margin-bottom: 30px;
       flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
     }
     .category-btn {
-      padding: 10px 20px;
-      background-color: #4CAF50;
+      padding: 10px 16px;
+      background-color: #1a73e8;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 30px;
       cursor: pointer;
-      font-size: 16px;
-      transition: background 0.3s;
+      font-size: 15px;
+      font-weight: 500;
     }
     .category-btn:hover {
-      background-color: #45a049;
+      background-color: #1557b0;
     }
+
+    .admin-section {
+      background: white;
+      padding: 18px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 25px;
+    }
+    .admin-section h3 {
+      margin: 0 0 15px;
+      color: #1a73e8;
+    }
+    .admin-btn {
+      background-color: #ff9800;
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 10px;
+    }
+    input[type="file"] {
+      margin: 10px 0;
+    }
+
+    .add-form {
+      margin-top: 15px;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 8px;
+    }
+    .add-form input, .add-form select {
+      width: 100%;
+      padding: 8px;
+      margin: 6px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .add-form button {
+      background: #1a73e8;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-right: 8px;
+    }
+
     .products {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 18px;
     }
     .product {
       background: white;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      padding: 15px;
-      transition: transform 0.3s;
-    }
-    .product:hover {
-      transform: translateY(-5px);
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
     }
     .product h3 {
       margin: 0 0 10px;
       color: #1a73e8;
+      font-size: 1.2em;
     }
     .product p {
-      margin: 5px 0;
-      font-size: 14px;
+      margin: 6px 0;
+      font-size: 15px;
       color: #555;
     }
-    .price {
-      font-weight: bold;
+    .price-unit {
+      font-weight: 600;
       color: #2e7d32;
+    }
+    .price-bulk {
+      font-weight: 500;
+      color: #d81b60;
     }
     .btn-add {
       margin-top: 10px;
-      padding: 8px 15px;
+      width: 100%;
+      padding: 10px;
       background-color: #1a73e8;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
-      width: 100%;
     }
     .btn-add:hover {
       background-color: #1557b0;
     }
+    .btn-pack {
+      background-color: #0d47a1;
+    }
+
     .cart {
       position: fixed;
       top: 20px;
       right: 20px;
       background: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      padding: 15px;
-      width: 300px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+      padding: 20px;
+      width: 350px;
       max-height: 80vh;
       overflow-y: auto;
       display: none;
+      z-index: 1000;
     }
     .cart-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 5px;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #eee;
     }
-    .cart-item {
-      display: flex;
-      justify-content: space-between;
-      margin: 10px 0;
-      font-size: 14px;
-    }
-    .cart-total {
-      margin-top: 15px;
-      font-weight: bold;
-      text-align: right;
+    .cart-header h3 {
+      margin: 0;
       color: #1a73e8;
     }
     .close-cart {
       background: none;
       border: none;
-      font-size: 18px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #999;
+    }
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+      padding: 6px 0;
+      border-bottom: 1px dashed #eee;
+      font-size: 15px;
+    }
+    .cart-total {
+      margin-top: 20px;
+      font-weight: bold;
+      text-align: right;
+      color: #1a73e8;
+      font-size: 1.2em;
+    }
+    .cart-actions {
+      margin-top: 15px;
+      text-align: right;
+    }
+    .btn-checkout {
+      background: #d32f2f;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 6px;
       cursor: pointer;
     }
-    .show-cart {
-      display: block !important;
-    }
-    .hidden {
+
+    .receipt-modal {
       display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 1001;
     }
+    .receipt-content {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 420px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    .receipt-header {
+      text-align: center;
+      color: #1a73e8;
+      margin-bottom: 20px;
+    }
+    .receipt-items {
+      margin: 15px 0;
+    }
+    .receipt-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .receipt-total {
+      text-align: right;
+      font-weight: bold;
+      margin-top: 20px;
+      font-size: 1.3em;
+      color: #1a73e8;
+    }
+    .receipt-btns {
+      text-align: right;
+      margin-top: 20px;
+    }
+    .btn-print, .btn-close-receipt {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-left: 10px;
+    }
+    .btn-print { background: #1a73e8; color: white; }
+    .btn-close-receipt { background: #999; color: white; }
+
+    .show-cart { display: block; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
 
   <header>
     <h1>🏪 Mi Tienda Virtual</h1>
-    <p>Vende con control y transparencia</p>
+    <p>Compra fácil y rápido</p>
   </header>
 
   <div class="container">
+
+    <!-- Búsqueda -->
+    <div class="search-box">
+      <input type="text" id="search-input" placeholder="Buscar producto..." oninput="searchProduct()">
+    </div>
+
+    <!-- Sección de administración -->
+    <div class="admin-section">
+      <h3>🛠️ Administración</h3>
+
+      <!-- Formulario para agregar producto -->
+      <div class="add-form">
+        <h4>➕ Agregar Producto</h4>
+        <input type="text" id="prod-name" placeholder="Nombre del producto">
+        <input type="number" id="prod-price" placeholder="Precio por unidad (Bs.)" step="0.01">
+        <input type="number" id="prod-bulk-price" placeholder="Precio por mayor (Bs.)" step="0.01">
+        <input type="text" id="prod-bulk-desc" placeholder="Descripción del paquete (ej: Paquete 6 und)">
+        <select id="prod-category">
+          <!-- Las categorías se cargarán dinámicamente -->
+        </select>
+        <button onclick="addProduct()">Agregar Producto</button>
+      </div>
+
+      <!-- Añadir nueva categoría -->
+      <div class="add-form" style="margin-top: 15px;">
+        <h4>➕ Añadir Nueva Categoría</h4>
+        <input type="text" id="new-category" placeholder="Nombre de la nueva categoría (ej: Dulces)">
+        <button onclick="addNewCategory()">Agregar Categoría</button>
+      </div>
+
+      <!-- Carga desde Excel -->
+      <label class="admin-btn">
+        📂 Cargar desde Excel
+        <input type="file" id="upload-excel" accept=".xlsx, .xls" style="display: none;" onchange="handleFile(this.files)">
+      </label>
+      <a class="admin-btn" href="#" onclick="downloadTemplate()" style="text-decoration: none;">📋 Descargar Plantilla</a>
+    </div>
+
     <!-- Categorías -->
-    <div class="categories">
-      <button class="category-btn" onclick="filterCategory('all')">Todos</button>
-      <button class="category-btn" onclick="filterCategory('gaseosas')">Gaseosas</button>
-      <button class="category-btn" onclick="filterCategory('comestibles')">Comestibles</button>
-      <button class="category-btn" onclick="filterCategory('snacks')">Snacks</button>
-      <button class="category-btn" onclick="filterCategory('otros')">Otros</button>
+    <div class="categories" id="categories-container">
+      <!-- Se llenará dinámicamente -->
     </div>
 
     <!-- Productos -->
     <div class="products" id="product-list">
-      <!-- Producto 1 -->
-      <div class="product" data-category="gaseosas">
-        <h3>Coca-Cola 3L</h3>
-        <p><strong>Precio Compra:</strong> $1.80</p>
-        <p><strong>Precio Venta (Unidad):</strong> <span class="price">$2.50</span></p>
-        <p><strong>Precio Venta (Paquete 6 und):</strong> $14.00</p>
-        <p><strong>Ganancia por Unidad:</strong> $0.70</p>
-        <button class="btn-add" onclick="addToCart('Coca-Cola 3L', 2.50)">Añadir a compra (Unidad)</button>
-        <button class="btn-add" onclick="addToCart('Coca-Cola 3L (Paquete 6)', 14.00)">Añadir paquete (6 und)</button>
-      </div>
-
-      <!-- Producto 2 -->
-      <div class="product" data-category="gaseosas">
-        <h3>Pepsi 2.5L</h3>
-        <p><strong>Precio Compra:</strong> $1.60</p>
-        <p><strong>Precio Venta (Unidad):</strong> <span class="price">$2.30</span></p>
-        <p><strong>Precio Venta (Paquete 6 und):</strong> $13.00</p>
-        <p><strong>Ganancia por Unidad:</strong> $0.70</p>
-        <button class="btn-add" onclick="addToCart('Pepsi 2.5L', 2.30)">Añadir a compra (Unidad)</button>
-        <button class="btn-add" onclick="addToCart('Pepsi 2.5L (Paquete 6)', 13.00)">Añadir paquete (6 und)</button>
-      </div>
-
-      <!-- Producto 3 -->
-      <div class="product" data-category="comestibles">
-        <h3>Arroz Costeño 1kg</h3>
-        <p><strong>Precio Compra:</strong> $1.00</p>
-        <p><strong>Precio Venta (Unidad):</strong> <span class="price">$1.40</span></p>
-        <p><strong>Precio Venta (Paquete 10 und):</strong> $13.00</p>
-        <p><strong>Ganancia por Unidad:</strong> $0.40</p>
-        <button class="btn-add" onclick="addToCart('Arroz Costeño 1kg', 1.40)">Añadir a compra</button>
-        <button class="btn-add" onclick="addToCart('Arroz Costeño 1kg (Paquete 10)', 13.00)">Añadir paquete (10 und)</button>
-      </div>
-
-      <!-- Producto 4 -->
-      <div class="product" data-category="snacks">
-        <h3>Chips Frito Lay (50g)</h3>
-        <p><strong>Precio Compra:</strong> $0.60</p>
-        <p><strong>Precio Venta (Unidad):</strong> <span class="price">$1.00</span></p>
-        <p><strong>Precio Venta (Paquete 12 und):</strong> $11.00</p>
-        <p><strong>Ganancia por Unidad:</strong> $0.40</p>
-        <button class="btn-add" onclick="addToCart('Chips Frito Lay', 1.00)">Añadir a compra</button>
-        <button class="btn-add" onclick="addToCart('Chips Frito Lay (Paquete 12)', 11.00)">Añadir paquete (12 und)</button>
-      </div>
-
-      <!-- Producto 5 -->
-      <div class="product" data-category="otros">
-        <h3>Agua Vital 1L</h3>
-        <p><strong>Precio Compra:</strong> $0.80</p>
-        <p><strong>Precio Venta (Unidad):</strong> <span class="price">$1.20</span></p>
-        <p><strong>Precio Venta (Paquete 12 und):</strong> $13.50</p>
-        <p><strong>Ganancia por Unidad:</strong> $0.40</p>
-        <button class="btn-add" onclick="addToCart('Agua Vital 1L', 1.20)">Añadir a compra</button>
-        <button class="btn-add" onclick="addToCart('Agua Vital 1L (Paquete 12)', 13.50)">Añadir paquete (12 und)</button>
-      </div>
-
-      <!-- Producto 6 -->
-      <div class="product" data-category="gaseosas">
-        <h3>Sprite 2L</h3>
-        <p><strong>Precio Compra:</strong> $1.70</p>
-        <p><strong>Precio Venta (Unidad):</strong> <span class="price">$2.40</span></p>
-        <p><strong>Precio Venta (Paquete 6 und):</strong> $13.80</p>
-        <p><strong>Ganancia por Unidad:</strong> $0.70</p>
-        <button class="btn-add" onclick="addToCart('Sprite 2L', 2.40)">Añadir a compra (Unidad)</button>
-        <button class="btn-add" onclick="addToCart('Sprite 2L (Paquete 6)', 13.80)">Añadir paquete (6 und)</button>
-      </div>
+      <!-- Se llenará dinámicamente -->
     </div>
+
   </div>
 
-  <!-- Carrito de compras -->
+  <!-- Botón flotante del carrito -->
+  <button style="position: fixed; bottom: 20px; right: 20px; background: #1a73e8; color: white; border: none; padding: 15px; border-radius: 50%; font-size: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; z-index: 10;" onclick="toggleCart()">
+    🛒 <span id="cart-count">0</span>
+  </button>
+
+  <!-- Carrito -->
   <div class="cart" id="cart">
     <div class="cart-header">
       <h3>Tu Compra</h3>
       <button class="close-cart" onclick="toggleCart()">✕</button>
     </div>
     <div id="cart-items">
-      <!-- Aquí se agregan los productos -->
       <p id="empty-cart">Tu carrito está vacío.</p>
     </div>
-    <div class="cart-total" id="cart-total">
-      Total: $0.00
+    <div class="cart-total" id="cart-total">Total: 0,00 Bs.</div>
+    <div class="cart-actions">
+      <button class="btn-checkout" onclick="checkout()">Finalizar Compra</button>
     </div>
   </div>
 
-  <button style="position: fixed; bottom: 20px; right: 20px; background: #1a73e8; color: white; border: none; padding: 12px 20px; border-radius: 50%; font-size: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer;" onclick="toggleCart()">
-    🛒 <span id="cart-count">0</span>
-  </button>
+  <!-- Recibo -->
+  <div class="receipt-modal" id="receipt-modal">
+    <div class="receipt-content">
+      <div class="receipt-header">
+        <h2>📄 Recibo de Compra</h2>
+        <p>Mi Tienda Virtual</p>
+        <p><small>Fecha: <span id="receipt-date"></span></small></p>
+      </div>
+      <div id="receipt-items" class="receipt-items"></div>
+      <div class="receipt-total" id="receipt-total">Total: 0,00 Bs.</div>
+      <div class="receipt-btns">
+        <button class="btn-close-receipt" onclick="closeReceipt()">Cerrar</button>
+        <button class="btn-print" onclick="printReceipt()">Imprimir</button>
+      </div>
+    </div>
+  </div>
 
   <script>
-    // Carrito
-    let cart = [];
-    const cartItemsEl = document.getElementById('cart-items');
-    const cartTotalEl = document.getElementById('cart-total');
-    const cartCountEl = document.getElementById('cart-count');
-    const emptyCartMsg = document.getElementById('empty-cart');
+    // Claves de almacenamiento
+    const STORAGE_PRODUCTS = 'mi_tienda_productos_vfinal';
+    const STORAGE_CATEGORIES = 'mi_tienda_categorias_v1';
 
-    function addToCart(name, price) {
-      const existing = cart.find(item => item.name === name);
-      if (existing) {
-        existing.quantity += 1;
-      } else {
-        cart.push({ name, price, quantity: 1 });
+    // Cargar productos
+    let products = JSON.parse(localStorage.getItem(STORAGE_PRODUCTS)) || [
+      { name: "Coca-Cola 3L", price: 18.00, bulkPrice: 105.00, bulkDesc: "Paquete 6 und", category: "gaseosas" },
+      { name: "Papel Higiénico 4 rollos", price: 12.00, bulkPrice: 135.00, bulkDesc: "Paquete 12 und", category: "papel higienico" },
+      { name: "Agua Vital 1L", price: 8.50, bulkPrice: 96.00, bulkDesc: "Paquete 12 und", category: "aguas" }
+    ];
+
+    // Cargar categorías (incluyendo "papel higienico")
+    let categories = JSON.parse(localStorage.getItem(STORAGE_CATEGORIES)) || [
+      "gaseosas",
+      "jugos",
+      "aguas",
+      "cerveza",
+      "tragos",
+      "panales",
+      "plasticos",
+      "limpieza",
+      "galletas",
+      "papel higienico"  // ← Nueva categoría
+    ];
+
+    let cart = [];
+
+    // Guardar productos y categorías
+    function saveProducts() {
+      localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products));
+    }
+    function saveCategories() {
+      localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(categories));
+    }
+
+    // Cargar categorías en menús
+    function loadCategories() {
+      const container = document.getElementById('categories-container');
+      const select = document.getElementById('prod-category');
+      
+      // Limpiar
+      container.innerHTML = '';
+      select.innerHTML = '<option value="">Seleccionar categoría</option>';
+
+      // Agregar "Todos"
+      const btnAll = document.createElement('button');
+      btnAll.className = 'category-btn';
+      btnAll.textContent = 'Todos';
+      btnAll.onclick = () => filterCategory('all');
+      container.appendChild(btnAll);
+
+      // Agregar cada categoría
+      categories.forEach(cat => {
+        const safeCat = cat.toLowerCase().replace(/\s+/g, ''); // "papel higienico" → "papelhigienico"
+        
+        const btn = document.createElement('button');
+        btn.className = 'category-btn';
+        btn.textContent = capitalize(cat);
+        btn.onclick = () => filterCategory(safeCat);
+        container.appendChild(btn);
+
+        const option = document.createElement('option');
+        option.value = safeCat;
+        option.textContent = capitalize(cat);
+        select.appendChild(option);
+      });
+    }
+
+    // Capitalizar texto
+    function capitalize(str) {
+      return str.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    }
+
+    // Cargar productos
+    function loadProducts() {
+      const container = document.getElementById('product-list');
+      container.innerHTML = '';
+      products.forEach(p => {
+        const safeCat = p.category.toLowerCase().replace(/\s+/g, '');
+        const div = document.createElement('div');
+        div.className = 'product';
+        div.setAttribute('data-category', safeCat);
+        div.setAttribute('data-name', p.name.toLowerCase());
+        div.innerHTML = `
+          <h3>${p.name}</h3>
+          <p><strong>Precio Unidad:</strong> <span class="price-unit">${p.price.toFixed(2)} Bs.</span></p>
+          <p><strong>${p.bulkDesc}:</strong> <span class="price-bulk">${p.bulkPrice.toFixed(2)} Bs.</span></p>
+          <button class="btn-add" onclick="addToCart('${p.name}', ${p.price})">Añadir Unidad</button>
+          <button class="btn-add btn-pack" onclick="addToCart('${p.name} (${p.bulkDesc})', ${p.bulkPrice})">Añadir ${p.bulkDesc}</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // Añadir producto
+    function addProduct() {
+      const name = document.getElementById('prod-name').value.trim();
+      const price = parseFloat(document.getElementById('prod-price').value);
+      const bulkPrice = parseFloat(document.getElementById('prod-bulk-price').value);
+      const bulkDesc = document.getElementById('prod-bulk-desc').value.trim();
+      const category = document.getElementById('prod-category').value;
+
+      if (!name || isNaN(price) || isNaN(bulkPrice) || !bulkDesc || !category) {
+        alert("Completa todos los campos.");
+        return;
       }
+
+      // Buscar categoría original para mostrar bien
+      const displayCategory = categories.find(c => c.toLowerCase().replace(/\s+/g, '') === category) || "otros";
+
+      products.push({ 
+        name, 
+        price, 
+        bulkPrice, 
+        bulkDesc, 
+        category: displayCategory 
+      });
+      saveProducts();
+      loadProducts();
+      alert("✅ Producto agregado.");
+      clearForm();
+    }
+
+    function clearForm() {
+      document.getElementById('prod-name').value = '';
+      document.getElementById('prod-price').value = '';
+      document.getElementById('prod-bulk-price').value = '';
+      document.getElementById('prod-bulk-desc').value = '';
+      document.getElementById('prod-category').value = '';
+    }
+
+    // Añadir nueva categoría
+    function addNewCategory() {
+      const input = document.getElementById('new-category');
+      const name = input.value.trim();
+      if (!name) {
+        alert("Escribe un nombre de categoría.");
+        return;
+      }
+
+      const safeName = name.toLowerCase().replace(/\s+/g, '');
+      const exists = categories.some(cat => cat.toLowerCase().replace(/\s+/g, '') === safeName);
+      if (exists) {
+        alert("Esta categoría ya existe.");
+        return;
+      }
+
+      categories.push(name);
+      saveCategories();
+      loadCategories();
+      input.value = '';
+      alert(`✅ Categoría "${name}" agregada.`);
+    }
+
+    // Manejar carga de Excel
+    function handleFile(fileList) {
+      if (!fileList.length) return;
+      const file = fileList[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          const json = XLSX.utils.sheet_to_json(sheet);
+
+          let added = 0;
+          json.forEach(row => {
+            if (!row.nombre || !row.precio || !row.precio_mayor || !row.descripcion_mayor || !row.categoria) return;
+            
+            // Añadir categoría si no existe
+            const catNorm = row.categoria.toLowerCase().replace(/\s+/g, '');
+            if (!categories.some(c => c.toLowerCase().replace(/\s+/g, '') === catNorm)) {
+              categories.push(row.categoria);
+            }
+
+            products.push({
+              name: row.nombre,
+              price: parseFloat(row.precio),
+              bulkPrice: parseFloat(row.precio_mayor),
+              bulkDesc: row.descripcion_mayor,
+              category: row.categoria
+            });
+            added++;
+          });
+          saveCategories();
+          saveProducts();
+          loadCategories();
+          loadProducts();
+          alert(`✅ ${added} productos cargados desde Excel.`);
+        } catch (error) {
+          alert("❌ Error al leer el archivo.");
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    // Descargar plantilla
+    function downloadTemplate() {
+      const data = [
+        ["nombre", "precio", "precio_mayor", "descripcion_mayor", "categoria"],
+        ["Papel Higiénico 4R", 12.00, 135.00, "Paquete 12 und", "papel higienico"],
+        ["Coca-Cola 3L", 18.00, 105.00, "Paquete 6 und", "gaseosas"]
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Productos");
+      XLSX.writeFile(wb, "plantilla_productos_tienda.xlsx");
+    }
+
+    // Búsqueda
+    function searchProduct() {
+      const term = document.getElementById('search-input').value.toLowerCase();
+      const productsList = document.querySelectorAll('.product');
+      productsList.forEach(p => {
+        const name = p.getAttribute('data-name');
+        const category = p.getAttribute('data-category');
+        const matches = name.includes(term) || category.includes(term);
+        p.style.display = matches ? 'block' : 'none';
+      });
+    }
+
+    // Filtrar por categoría
+    function filterCategory(category) {
+      document.getElementById('search-input').value = '';
+      const productsList = document.querySelectorAll('.product');
+      productsList.forEach(p => {
+        p.style.display = (category === 'all' || p.getAttribute('data-category') === category) ? 'block' : 'none';
+      });
+    }
+
+    // Carrito
+    function addToCart(name, price) {
+      const item = cart.find(i => i.name === name);
+      if (item) item.quantity += 1;
+      else cart.push({ name, price, quantity: 1 });
       updateCart();
     }
 
     function updateCart() {
-      cartItemsEl.innerHTML = '';
-      let total = 0;
-      let count = 0;
-
+      const itemsEl = document.getElementById('cart-items');
+      const totalEl = document.getElementById('cart-total');
+      const countEl = document.getElementById('cart-count');
+      itemsEl.innerHTML = '';
       if (cart.length === 0) {
-        cartItemsEl.appendChild(emptyCartMsg);
-      } else {
-        cart.forEach(item => {
-          const itemTotal = item.price * item.quantity;
-          total += itemTotal;
-          count += item.quantity;
-
-          const div = document.createElement('div');
-          div.className = 'cart-item';
-          div.innerHTML = `
-            <span>${item.name} x${item.quantity}</span>
-            <span>$${itemTotal.toFixed(2)}</span>
-          `;
-          cartItemsEl.appendChild(div);
-        });
+        itemsEl.innerHTML = '<p id="empty-cart">Vacío</p>';
+        totalEl.textContent = 'Total: 0,00 Bs.';
+        countEl.textContent = '0';
+        return;
       }
-
-      cartTotalEl.textContent = `Total: $${total.toFixed(2)}`;
-      cartCountEl.textContent = count;
+      let total = 0, count = 0;
+      cart.forEach(item => {
+        const t = item.price * item.quantity;
+        total += t; count += item.quantity;
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `<span>${item.name}</span><span>${t.toFixed(2)} Bs.</span>`;
+        itemsEl.appendChild(div);
+      });
+      totalEl.textContent = `Total: ${total.toFixed(2)} Bs.`;
+      countEl.textContent = count;
     }
 
     function toggleCart() {
-      const cartEl = document.getElementById('cart');
-      cartEl.classList.toggle('show-cart');
+      document.getElementById('cart').classList.toggle('show-cart');
     }
 
-    // Filtro de categorías
-    function filterCategory(category) {
-      const products = document.querySelectorAll('.product');
-      products.forEach(product => {
-        if (category === 'all' || product.getAttribute('data-category') === category) {
-          product.classList.remove('hidden');
-        } else {
-          product.classList.add('hidden');
-        }
-      });
-    }
-
-    // Cerrar carrito al hacer clic fuera
-    window.onclick = function(e) {
-      const cart = document.getElementById('cart');
-      if (!cart.contains(e.target) && !e.target.closest('button') && cart.classList.contains('show-cart')) {
-        cart.classList.remove('show-cart');
+    // Finalizar compra
+    function checkout() {
+      if (cart.length === 0) {
+        alert("Vacío");
+        return;
       }
+      const receiptItems = document.getElementById('receipt-items');
+      const receiptTotal = document.getElementById('receipt-total');
+      receiptItems.innerHTML = '';
+      let total = 0;
+      cart.forEach(item => {
+        const t = item.price * item.quantity;
+        total += t;
+        const p = document.createElement('div');
+        p.className = 'receipt-item';
+        p.innerHTML = `<span>${item.name}</span><span>${t.toFixed(2)} Bs.</span>`;
+        receiptItems.appendChild(p);
+      });
+      receiptTotal.textContent = `Total: ${total.toFixed(2)} Bs.`;
+      document.getElementById('receipt-date').textContent = new Date().toLocaleString('es-BO');
+      document.getElementById('receipt-modal').style.display = 'flex';
+      toggleCart();
+      cart = []; updateCart();
+    }
+
+    function closeReceipt() {
+      document.getElementById('receipt-modal').style.display = 'none';
+    }
+
+    function printReceipt() {
+      const c = document.querySelector('.receipt-content').innerHTML;
+      const d = document.body.innerHTML;
+      document.body.innerHTML = c;
+      window.print();
+      document.body.innerHTML = d;
+    }
+
+    // Inicializar
+    window.onload = function() {
+      loadCategories();
+      loadProducts();
+      updateCart();
     };
   </script>
-
 </body>
-</html>
+</html>    
